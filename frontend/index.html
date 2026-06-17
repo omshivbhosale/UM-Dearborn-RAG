@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UM-Dearborn AI Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #00274C;
+      --gold: #FFCB05;
+      --gold-dark: #e6b800;
+      --navy-light: #003d7a;
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --surface-2: #f7f8fa;
+      --border: #e2e5ea;
+      --text: #1a1d23;
+      --text-muted: #6b7280;
+      --user-bubble: #00274C;
+      --ai-bubble: #ffffff;
+      --radius: 16px;
+      --shadow: 0 4px 24px rgba(0,39,76,0.10);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy);
+      padding: 0 28px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .logo-badge {
+      width: 40px; height: 40px;
+      background: var(--gold);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px; color: var(--navy);
+      letter-spacing: -1px; flex-shrink: 0;
+    }
+
+    .header-title  { color: #fff; font-size: 17px; font-weight: 600; line-height: 1.2; }
+    .header-subtitle { color: rgba(255,255,255,0.55); font-size: 12px; margin-top: 1px; }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #22c55e; animation: pulse 2s infinite;
+    }
+    .status-dot.offline { background: #ef4444; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+
+    .status-label { color: rgba(255,255,255,0.6); font-size: 12px; }
+
+    .btn-clear {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.8);
+      padding: 6px 14px; border-radius: 8px;
+      font-size: 13px; cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-clear:hover { background: rgba(255,255,255,0.15); }
+
+    /* ── MAIN LAYOUT ── */
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px; background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 20px 16px; gap: 20px;
+      overflow-y: auto; flex-shrink: 0;
+    }
+
+    .sidebar-section h3 {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-muted); margin-bottom: 10px;
+    }
+
+    .quick-btn {
+      width: 100%; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; text-align: left;
+      font-family: inherit; font-size: 13px;
+      color: var(--text); cursor: pointer;
+      transition: all 0.15s; margin-bottom: 6px; line-height: 1.4;
+    }
+    .quick-btn:hover { background: #eef2ff; border-color: var(--navy); color: var(--navy); }
+
+    .stat-card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px;
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 700; color: var(--navy); }
+    .stat-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .index-status-bar {
+      font-size: 11px; color: var(--text-muted);
+      margin-top: 6px; padding: 6px 8px;
+      background: #f0f9ff; border: 1px solid #bae6fd;
+      border-radius: 6px; display: none;
+    }
+    .index-status-bar.visible { display: block; }
+    .index-status-bar.error { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+    /* ── CHAT AREA ── */
+    .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+    .messages {
+      flex: 1; overflow-y: auto;
+      padding: 28px 28px 12px; scroll-behavior: smooth;
+    }
+
+    /* ── WELCOME ── */
+    .welcome {
+      text-align: center; padding: 60px 20px;
+      max-width: 520px; margin: 0 auto;
+    }
+    .welcome-icon {
+      width: 72px; height: 72px; background: var(--navy);
+      border-radius: 20px; display: flex;
+      align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 32px;
+    }
+    .welcome h2 { font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+    .welcome p  { font-size: 15px; color: var(--text-muted); line-height: 1.7; }
+    .welcome-tips {
+      margin-top: 20px; text-align: left;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .welcome-tips p { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+    .welcome-tips ul { list-style: none; padding: 0; }
+    .welcome-tips li { font-size: 13px; color: var(--text-muted); padding: 3px 0; }
+    .welcome-tips li::before { content: "→ "; color: var(--navy); font-weight: 700; }
+
+    /* ── MESSAGES ── */
+    .message {
+      display: flex; gap: 12px; margin-bottom: 20px;
+      animation: fadeUp 0.25s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0; font-weight: 700;
+    }
+    .avatar.ai-av   { background: var(--navy); color: var(--gold); }
+    .avatar.user-av { background: var(--gold); color: var(--navy); }
+
+    .bubble {
+      max-width: 72%; padding: 14px 18px;
+      border-radius: var(--radius); line-height: 1.65;
+      font-size: 14.5px; box-shadow: var(--shadow-sm);
+    }
+    .user .bubble {
+      background: var(--user-bubble); color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .ai .bubble {
+      background: var(--ai-bubble); color: var(--text);
+      border-bottom-left-radius: 4px; border: 1px solid var(--border);
+    }
+
+    .bubble p { margin-bottom: 8px; }
+    .bubble p:last-of-type { margin-bottom: 0; }
+    .bubble ul, .bubble ol { padding-left: 20px; margin: 6px 0 8px; }
+    .bubble li { margin-bottom: 4px; }
+    .bubble strong { font-weight: 600; }
+    .bubble h3 { font-size: 15px; font-weight: 600; margin: 10px 0 4px; color: var(--navy); }
+    .bubble h4 { font-size: 14px; font-weight: 600; margin: 8px 0 4px; }
+    .bubble code {
+      background: #f0f0f0; padding: 2px 5px; border-radius: 4px;
+      font-family: 'DM Mono', monospace; font-size: 13px;
+    }
+    .user .bubble code { background: rgba(255,255,255,0.15); }
+
+    /* sources */
+    .sources {
+      margin-top: 12px; padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .sources-title {
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;
+    }
+    .source-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 11.5px; color: var(--navy); text-decoration: none;
+      margin: 2px 3px 2px 0; transition: all 0.15s;
+      max-width: 210px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .source-chip:hover { background: #e8eeff; border-color: var(--navy); }
+    .score-badge {
+      background: var(--gold); color: var(--navy);
+      border-radius: 10px; padding: 1px 5px;
+      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+
+    .meta-row { display: flex; gap: 14px; margin-top: 8px; }
+    .meta-item { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+    /* ── TYPING INDICATOR ── */
+    .typing .bubble { padding: 16px 20px; }
+    .typing-dots { display: flex; gap: 5px; }
+    .typing-dots span {
+      width: 7px; height: 7px; background: var(--text-muted);
+      border-radius: 50%; animation: bounce 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ── INPUT BAR ── */
+    .input-bar {
+      padding: 16px 28px 20px; background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .input-wrap {
+      display: flex; gap: 10px;
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: 14px; padding: 10px 10px 10px 18px;
+      align-items: flex-end; transition: border-color 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+    .input-wrap:focus-within { border-color: var(--navy); }
+
+    textarea {
+      flex: 1; border: none; outline: none;
+      background: transparent; font-family: inherit;
+      font-size: 15px; color: var(--text);
+      resize: none; line-height: 1.5;
+      max-height: 120px; min-height: 24px;
+    }
+    textarea::placeholder { color: var(--text-muted); }
+
+    .send-btn {
+      width: 40px; height: 40px; background: var(--navy);
+      border: none; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.15s, transform 0.1s; color: white;
+    }
+    .send-btn:hover   { background: var(--navy-light); }
+    .send-btn:active  { transform: scale(0.95); }
+    .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .input-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+
+    /* ── API CONFIG PANEL ── */
+    .config-panel {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px;
+    }
+    .config-panel label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .config-panel input {
+      width: 100%; padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: 'DM Mono', monospace; font-size: 12px;
+      background: white; color: var(--text); margin-bottom: 8px;
+    }
+    .config-panel input:focus { outline: none; border-color: var(--navy); }
+
+    .btn-connect {
+      width: 100%; background: var(--navy); color: white;
+      border: none; border-radius: 8px; padding: 9px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-connect:hover { background: var(--navy-light); }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cdd0d6; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-badge">UM</div>
+    <div>
+      <div class="header-title">UM-Dearborn AI Assistant</div>
+      <div class="header-subtitle">Powered by RAG · University of Michigan-Dearborn</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-label" id="statusLabel">Connecting...</span>
+    <button class="btn-clear" onclick="clearMemory()">Clear Memory</button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <h3>Knowledge Base</h3>
+      <div class="stat-card">
+        <div class="stat-label">Indexed Chunks</div>
+        <div class="stat-value" id="chunkCount">—</div>
+        <div class="stat-sub" id="chunkSub">Loading...</div>
+      </div>
+      <div class="index-status-bar" id="indexStatusBar"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Quick Questions</h3>
+      <button class="quick-btn" onclick="sendQuick('What undergraduate programs does UM-Dearborn offer?')">🎓 Undergraduate programs</button>
+      <button class="quick-btn" onclick="sendQuick('What are the admission requirements for UM-Dearborn?')">📋 Admission requirements</button>
+      <button class="quick-btn" onclick="sendQuick('What financial aid and scholarships are available?')">💰 Financial aid & scholarships</button>
+      <button class="quick-btn" onclick="sendQuick('Tell me about campus life at UM-Dearborn')">🏫 Campus life</button>
+      <button class="quick-btn" onclick="sendQuick('What graduate programs are offered?')">📚 Graduate programs</button>
+      <button class="quick-btn" onclick="sendQuick('How do I contact the admissions office?')">📞 Contact admissions</button>
+      <button class="quick-btn" onclick="sendQuick('What research opportunities exist for students?')">🔬 Research opportunities</button>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Backend Config</h3>
+      <div class="config-panel">
+        <label>API URL</label>
+        <input type="text" id="apiUrl" placeholder="http://localhost:8000"/>
+        <button class="btn-connect" onclick="connect()">🔌 Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🎓</div>
+        <h2>Hello! I'm your UM-Dearborn AI Assistant</h2>
+        <p>Ask me anything about the University of Michigan-Dearborn — programs, admissions, campus life, financial aid, professors, and more.</p>
+        <div class="welcome-tips">
+          <p>Try asking:</p>
+          <ul>
+            <li>What are the application deadlines for grad programs?</li>
+            <li>Tell me about Professor Mohamed Abouelenien</li>
+            <li>What is the Go Blue Guarantee?</li>
+            <li>List all CIS faculty</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea
+          id="queryInput"
+          placeholder="Ask about programs, admissions, faculty, campus life..."
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONSTANTS & STATE ──
+  const STORAGE_KEY_URL = 'umd_api_url';
+  const STORAGE_KEY_SESSION = 'umd_session_id';
+
+  let API_URL = localStorage.getItem(STORAGE_KEY_URL) || 'http://localhost:8000';
+  let SESSION_ID = localStorage.getItem(STORAGE_KEY_SESSION) || generateSessionId();
+  let isLoading = false;
+
+  // Persist session ID
+  localStorage.setItem(STORAGE_KEY_SESSION, SESSION_ID);
+
+  function generateSessionId() {
+    return 'session_' + Math.random().toString(36).slice(2, 11);
+  }
+
+  // ── INIT ──
+  window.onload = () => {
+    document.getElementById('apiUrl').value = API_URL;
+    checkHealth();
+    setInterval(checkHealth, 30000);
+  };
+
+  // ── CONNECT (saves URL) ──
+  function connect() {
+    const val = document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
+    if (val) {
+      API_URL = val;
+      localStorage.setItem(STORAGE_KEY_URL, API_URL);
+    }
+    checkHealth();
+  }
+
+  // ── HEALTH CHECK ──
+  async function checkHealth() {
+    API_URL = document.getElementById('apiUrl').value.trim().replace(/\/$/, '') || API_URL;
+    const dot    = document.getElementById('statusDot');
+    const label  = document.getElementById('statusLabel');
+    const count  = document.getElementById('chunkCount');
+    const sub    = document.getElementById('chunkSub');
+    const idxBar = document.getElementById('indexStatusBar');
+
+    try {
+      const res  = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(5000) });
+      const data = await res.json();
+
+      dot.className   = 'status-dot';
+      label.textContent = 'Connected';
+
+      const chunks = data.chunks_indexed || 0;
+      count.textContent = chunks.toLocaleString();
+      sub.textContent   = chunks > 0 ? 'Chunks ready for retrieval' : 'No data indexed yet';
+
+      // Show index progress if running
+      const idx = data.index_status || {};
+      if (idx.status === 'running') {
+        idxBar.textContent = '⏳ ' + (idx.message || 'Indexing...');
+        idxBar.className = 'index-status-bar visible';
+      } else if (idx.status === 'error') {
+        idxBar.textContent = '❌ Index error: ' + idx.message;
+        idxBar.className = 'index-status-bar visible error';
+      } else if (idx.status === 'done' && idx.message) {
+        idxBar.textContent = '✅ ' + idx.message;
+        idxBar.className = 'index-status-bar visible';
+        setTimeout(() => { idxBar.className = 'index-status-bar'; }, 5000);
+      } else {
+        idxBar.className = 'index-status-bar';
+      }
+
+    } catch {
+      dot.className     = 'status-dot offline';
+      label.textContent = 'Offline';
+      count.textContent = '—';
+      sub.textContent   = 'Backend not reachable';
+    }
+  }
+
+  // ── SEND MESSAGE ──
+  async function sendMessage() {
+    const input = document.getElementById('queryInput');
+    const query = input.value.trim();
+    if (!query || isLoading) return;
+
+    const welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    appendMessage('user', query);
+    input.value = '';
+    autoResize(input);
+
+    const typingId = appendTyping();
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    try {
+      const res = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, top_k: 5, session_id: SESSION_ID }),
+      });
+
+      removeTyping(typingId);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        appendError(err.detail || 'Something went wrong.');
+        return;
+      }
+
+      const data = await res.json();
+      appendMessage('ai', data.answer, data.sources || [], data.response_time);
+
+    } catch (e) {
+      removeTyping(typingId);
+      appendError(`Could not reach the backend at <code>${API_URL}</code>. Make sure the server is running.`);
+    } finally {
+      isLoading = false;
+      document.getElementById('sendBtn').disabled = false;
+    }
+  }
+
+  function sendQuick(q) {
+    document.getElementById('queryInput').value = q;
+    sendMessage();
+  }
+
+  // ── APPEND HELPERS ──
+  function appendError(html) {
+    appendMessage('ai', `❌ ${html}`, [], null);
+  }
+
+  function appendMessage(role, text, sources = [], time = null) {
+    const container = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${role === 'ai' ? 'ai-av' : 'user-av'}`;
+    avatar.textContent = role === 'ai' ? 'AI' : 'You';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = renderText(text);
+
+    // Sources — deduplicated by URL client-side as safety net
+    if (sources && sources.length > 0) {
+      const seenUrls = new Set();
+      const uniqueSources = sources.filter(s => {
+        if (seenUrls.has(s.url)) return false;
+        seenUrls.add(s.url);
+        return true;
+      });
+
+      const sourcesDiv = document.createElement('div');
+      sourcesDiv.className = 'sources';
+      sourcesDiv.innerHTML = '<div class="sources-title">📎 Sources</div>';
+      uniqueSources.forEach(src => {
+        const a = document.createElement('a');
+        a.className = 'source-chip';
+        a.href = src.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.title = src.title;
+        const pct = Math.round((src.score || 0) * 100);
+        a.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;flex:1">${escapeHtml(src.title || src.url)}</span><span class="score-badge">${pct}%</span>`;
+        sourcesDiv.appendChild(a);
+      });
+      bubble.appendChild(sourcesDiv);
+    }
+
+    // Response time
+    if (time !== null) {
+      const meta = document.createElement('div');
+      meta.className = 'meta-row';
+      meta.innerHTML = `<span class="meta-item">⏱ ${time}s</span>`;
+      bubble.appendChild(meta);
+    }
+
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // ── TEXT RENDERING ──
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function renderText(text) {
+    // Escape HTML first, then selectively re-apply formatting
+    let t = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // Bold: **text**
+    t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Inline code: `text`
+    t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Headings
+    t = t.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+    t = t.replace(/^## (.+)$/gm,  '<h3>$1</h3>');
+
+    // Lists — collect consecutive list items into a single <ul> or <ol>
+    // Unordered: lines starting with * or -
+    t = t.replace(/((?:^[*-] .+$\n?)+)/gm, match => {
+      const items = match.trim().split('\n')
+        .map(l => `<li>${l.replace(/^[*-] /, '').trim()}</li>`)
+        .join('');
+      return `<ul>${items}</ul>`;
+    });
+    // Ordered: lines starting with digit.
+    t = t.replace(/((?:^\d+\. .+$\n?)+)/gm, match => {
+      const items = match.trim().split('\n')
+        .map(l => `<li>${l.replace(/^\d+\. /, '').trim()}</li>`)
+        .join('');
+      return `<ol>${items}</ol>`;
+    });
+
+    // Paragraphs: blank lines → paragraph breaks
+    t = t.replace(/\n{2,}/g, '</p><p>');
+    // Single newlines → <br> (but not inside lists/headings)
+    t = t.replace(/([^>])\n([^<])/g, '$1<br>$2');
+
+    return `<p>${t}</p>`;
+  }
+
+  // ── TYPING INDICATOR ──
+  let typingCounter = 0;
+  function appendTyping() {
+    const id = 'typing-' + typingCounter++;
+    const container = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'message ai typing';
+    div.id = id;
+    div.innerHTML = `
+      <div class="avatar ai-av">AI</div>
+      <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return id;
+  }
+  function removeTyping(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  // ── CLEAR MEMORY ──
+  async function clearMemory() {
+    await fetch(`${API_URL}/clear-memory?session_id=${encodeURIComponent(SESSION_ID)}`, { method: 'POST' }).catch(() => {});
+    // Regenerate session so old context is fully abandoned
+    SESSION_ID = generateSessionId();
+    localStorage.setItem(STORAGE_KEY_SESSION, SESSION_ID);
+    document.getElementById('messages').innerHTML = `
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🎓</div>
+        <h2>Memory cleared!</h2>
+        <p>The conversation has been reset. Ask me anything about UM-Dearborn.</p>
+      </div>`;
+  }
+
+  // ── HELPERS ──
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+</script>
+</body>
+</html>
