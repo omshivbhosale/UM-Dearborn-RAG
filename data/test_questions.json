@@ -1,0 +1,82 @@
+[
+  {
+    "question": "What is the application deadline for Fall graduate admission for domestic students?",
+    "ground_truth": "August 1 for domestic students and May 1 for international students for Fall semester graduate admission at UM-Dearborn."
+  },
+  {
+    "question": "What degrees does Khalid Kattan hold?",
+    "ground_truth": "Khalid Kattan holds a PhD from Wayne State University, a Master's degree from the University of Massachusetts, and a Bachelor's degree from Tennessee Technological University."
+  },
+  {
+    "question": "What is the Go Blue Guarantee?",
+    "ground_truth": "The Go Blue Guarantee provides free tuition for eligible Michigan residents from families with limited income who attend UM-Dearborn."
+  },
+  {
+    "question": "What colleges make up UM-Dearborn?",
+    "ground_truth": "UM-Dearborn has four colleges: CASL (College of Arts, Sciences, and Letters), COB (College of Business), CECS (College of Engineering and Computer Science), and CEHHS (College of Education, Health, and Human Services)."
+  },
+  {
+    "question": "What does Professor Mohamed Abouelenien research?",
+    "ground_truth": "Professor Mohamed Abouelenien researches artificial intelligence, cognitive load sensing, and adaptive scaffolding to support collaborative simulation-based learning in high-stakes environments. He is the director of the Artificial Intelligence Research Lab (AIR) at UM-Dearborn."
+  },
+  {
+    "question": "What courses does Khalid Kattan teach?",
+    "ground_truth": "Khalid Kattan teaches CIS 275 (Discrete Structures I) and CIS 579 (Artificial Intelligence) at UM-Dearborn."
+  },
+  {
+    "question": "What is the tuition cost for undergraduate students at UM-Dearborn?",
+    "ground_truth": "UM-Dearborn offers undergraduate tuition rates that vary by residency status. Michigan residents pay lower in-state tuition rates compared to out-of-state students."
+  },
+  {
+    "question": "What graduate programs does the College of Engineering and Computer Science offer?",
+    "ground_truth": "CECS offers graduate programs including Master's degrees in Computer Science, Electrical Engineering, Mechanical Engineering, Software Engineering, Data Science, and related fields, as well as a PhD program."
+  },
+  {
+    "question": "How do I apply to UM-Dearborn as a transfer student?",
+    "ground_truth": "Transfer students can apply to UM-Dearborn through the admissions portal. Requirements include transcripts from previous institutions, meeting GPA requirements, and submitting the application by the relevant deadline."
+  },
+  {
+    "question": "What financial aid options are available at UM-Dearborn?",
+    "ground_truth": "UM-Dearborn offers financial aid including scholarships, grants, loans, and work-study programs. Students can apply through FAFSA and the university's One Stop financial aid office."
+  },
+  {
+    "question": "What housing options are available for students at UM-Dearborn?",
+    "ground_truth": "UM-Dearborn offers on-campus housing options for students including residence halls and apartments on or near campus."
+  },
+  {
+    "question": "What is the admission requirement GPA for undergraduate applicants?",
+    "ground_truth": "UM-Dearborn considers GPA as part of undergraduate admissions. Competitive applicants typically have a strong high school GPA, though specific cutoffs may vary by program."
+  },
+  {
+    "question": "What research labs exist in the Computer and Information Science department?",
+    "ground_truth": "The CIS department has research labs including the Artificial Intelligence Research Laboratory (AIR) directed by Drs. Luis Ortiz and Mohamed Abouelenien."
+  },
+  {
+    "question": "What is the Winter semester application deadline for graduate programs?",
+    "ground_truth": "The Winter semester application deadline for graduate programs at UM-Dearborn is November 1 for domestic students and September 1 for international students."
+  },
+  {
+    "question": "Does UM-Dearborn have a library?",
+    "ground_truth": "Yes, UM-Dearborn has a library on campus that provides resources and services to students and faculty."
+  },
+  {
+    "question": "What student organizations are available at UM-Dearborn?",
+    "ground_truth": "UM-Dearborn has a wide variety of student organizations covering academic, cultural, recreational, and professional interests for students to join."
+  },
+  {
+    "question": "What is the NSF grant that Professor Abouelenien received?",
+    "ground_truth": "Professor Mohamed Abouelenien received a National Science Foundation (NSF) grant for his project on advancing intelligent cognitive load sensing and adaptive scaffolding to support collaborative simulation-based learning in high-stakes environments such as healthcare emergencies."
+  },
+  {
+    "question": "What programs does the College of Business offer?",
+    "ground_truth": "The College of Business (COB) at UM-Dearborn offers undergraduate and graduate business programs including MBA and other business-related degrees."
+  },
+  {
+    "question": "How can international students apply to UM-Dearborn?",
+    "ground_truth": "International students can apply to UM-Dearborn through the international admissions process, which requires submitting transcripts, English proficiency scores (TOEFL or IELTS), financial documentation, and other required materials."
+  },
+  {
+    "question": "What career services does UM-Dearborn offer?",
+    "ground_truth": "UM-Dearborn has an Office of Career Services that helps students with job searching, resume writing, interview preparation, internships, and connecting with employers."
+  }
+]
