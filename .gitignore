@@ -3,7 +3,10 @@
 .env.local
 
 # Scraped data & vector store — too large for git
-data/
+# Everything under data/ except the evaluation files
+data/*
+!data/test_questions.json
+!data/eval_report.json
 backend/data/
 
 # Python
